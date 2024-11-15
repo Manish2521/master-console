@@ -25,75 +25,62 @@ const LoginPage = () => {
     setError(''); // Clear any previous error
     setLoading(true); // Start loading
 
+    let timeout = setTimeout(() => {
+      setError('Server busy. Please try again after 1 minute.');
+      setLoading(false); // Stop loading after timeout
+    }, 5000); // Timeout after 5 seconds
 
-    if ((username == "admin") && (password == "admin123")){
+    try {
+      const response = await axios.post('http://localhost:5000/login', {
+        username,
+        password,
+      }, {
+        withCredentials: true 
+      });
+      
+      clearTimeout(timeout);
+      setLoading(false); // Stop loading after success
+      
+      if (response.status === 200) {
         const token = generateToken();  
         localStorage.setItem('token', token);
         localStorage.setItem('username', username);
-        navigate('/landingpage');
-
-    }
-    else{
-        console.log("else part")
-    }
-    // let timeout = setTimeout(() => {
-    //   setError('Server busy. Please try again after 1 minute.');
-    //   setLoading(false); // Stop loading after timeout
-    // }, 5000); // Timeout after 5 seconds
-
-    // try {
-    //   const response = await axios.post('http://localhost:5000/login', {
-    //     username,
-    //     password,
-    //   }, {
-    //     withCredentials: true 
-    //   });
-      
-    //   clearTimeout(timeout);
-    //   setLoading(false); // Stop loading after success
-      
-    //   if (response.status === 200) {
-    //     const token = generateToken();  
-    //     localStorage.setItem('token', token);
-    //     localStorage.setItem('username', username);
         
-    //   //   // Fetch the user role based on username
-    //   //   const roleResponse = await axios.get(`http://localhost:5000/role/${username}`);
+      //   // Fetch the user role based on username
+      //   const roleResponse = await axios.get(`http://localhost:5000/role/${username}`);
         
-    //   //   if (roleResponse.status === 200) {
-    //   //     const { role } = roleResponse.data;
-    //   //     localStorage.setItem('role', role); // Store role in localStorage
+      //   if (roleResponse.status === 200) {
+      //     const { role } = roleResponse.data;
+      //     localStorage.setItem('role', role); // Store role in localStorage
           
-    //       navigate('/landingpage');
-    //   //   } else {
-    //   //     setError('Failed to retrieve user role.');
-    //   //   }
-    //   } else {
-    //     console.log("--------------")
-    //     setError('An unexpected error occurred. Please try again.');
-    //   }
-    // } catch (err) {
-    //   clearTimeout(timeout);
-    //   setLoading(false); // Stop loading on error
+          navigate('/landingpage');
+      //   } else {
+      //     setError('Failed to retrieve user role.');
+      //   }
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
+    } catch (err) {
+      clearTimeout(timeout);
+      setLoading(false); // Stop loading on error
       
-    //   if (err.response) {
-    //     console.error('Response error code:', err.response.status); 
-    //     if (err.response.status === 401) {
-    //       setError('Incorrect username or password.');
-    //     } else if (err.response.status === 500) {
-    //       setError('Server error. Please try again later.');
-    //     } else {
-    //         console.log("--------------")
-    //       setError('An unexpected error occurred. Please try again.');
-    //     }
-    //   } else if (err.request) {
-    //     console.error('Response error code:', err.response.status); 
-    //     setError('Unable to connect to the server. Please try again later.');
-    //   } else {
-    //     console.error('Response error code:', err.response.status); 
-    //     setError('An error occurred. Please try again.');
-    //   }
-    // }
+      if (err.response) {
+        console.error('Response error code:', err.response.status); 
+        if (err.response.status === 401) {
+          setError('Incorrect username or password.');
+        } else if (err.response.status === 500) {
+          setError('Server error. Please try again later.');
+        } else {
+          setError('An unexpected error occurred. Please try again.');
+        }
+      } else if (err.request) {
+        console.error('Response error code:', err.response.status); 
+        setError('Unable to connect to the server. Please try again later.');
+      } else {
+        console.error('Response error code:', err.response.status); 
+        setError('An error occurred. Please try again.');
+      }
+    }
   };
 
   return (
